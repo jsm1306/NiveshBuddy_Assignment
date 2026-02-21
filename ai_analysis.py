@@ -1,10 +1,79 @@
-# STRUCTURED PROMPT ENGINEERING (REFACTORED)
+# STRUCTURED PROMPT ENGINEERING (MODE-BASED)
 
-def build_structured_prompt(comparison_data: dict) -> str:
-    """Builds a structured prompt for Gemini API analysis from metrics."""
+def build_prompt(comparison_data: dict, mode: str = "quick") -> str:
+    """Builds a mode-based prompt for Gemini API analysis from metrics."""
     import json
     metrics_json = json.dumps(comparison_data, indent=2)
-    prompt = f"""You are a quantitative portfolio analyst evaluating two momentum strategies.\n\nAnalyze ONLY the provided JSON metrics below.\n\nSTRATEGY METRICS (JSON):\n{metrics_json}\n\nReturn your analysis in the following STRICT structure:\n\nWINNER:\n- State which strategy performs better overall.\n\nKEY DIFFERENCES:\n- Provide 3 concise bullet points comparing performance (use percentages).\n\nRISK VS RETURN:\n- Explain trade-offs using drawdown, volatility, and Sharpe ratio.\n\nWHEN EACH STRATEGY MAY OUTPERFORM:\n- Briefly describe market conditions favoring each.\n\nIMPROVEMENT SUGGESTION:\n- Suggest ONE realistic enhancement (e.g., adaptive lookback, volatility filter).\n\nSTYLE CONSTRAINTS:\n- Use percentages for metrics.\n- Maximum 8 bullet points total.\n- Keep explanations concise and business-readable.\n- Do NOT produce long essays.\n- Reason ONLY from provided JSON.\n- Avoid generic statements.\n- Maintain professional fintech analyst tone.\n"""
+    
+    if mode == "quick":
+        prompt = f"""You are a quantitative portfolio analyst evaluating two momentum strategies.
+
+Analyze ONLY the provided JSON metrics below.
+
+STRATEGY METRICS (JSON):
+{metrics_json}
+
+Return a concise analysis with ONLY 5 bullet insights:
+
+WINNER:
+- Which strategy performs better overall?
+
+KEY DIFFERENCE:
+- What is the most significant performance gap?
+
+RISK NOTE:
+- What is the main risk trade-off?
+
+ONE IMPROVEMENT IDEA:
+- Suggest a single realistic enhancement.
+
+TONE:
+- Use percentages for metrics.
+- Maximum 5 bullets total.
+- Be concise and business-readable.
+- No long essays.
+- Reason ONLY from provided JSON.
+- Maintain professional fintech analyst tone."""
+    
+    elif mode == "detailed":
+        prompt = f"""You are a quantitative portfolio analyst evaluating two momentum strategies.
+
+Analyze ONLY the provided JSON metrics below.
+
+STRATEGY METRICS (JSON):
+{metrics_json}
+
+Return your analysis in the following structured sections:
+
+PERFORMANCE COMPARISON:
+- Compare returns, CAGR, and risk-adjusted metrics across both strategies.
+- Use specific values from the JSON data.
+
+RISK VS RETURN ANALYSIS:
+- Explain the efficiency frontier positions.
+- Discuss drawdown, volatility, and Sharpe ratio trade-offs.
+- Determine which strategy offers better risk-adjusted returns.
+
+WHEN EACH STRATEGY OUTPERFORMS:
+- Describe market conditions where the 30-day strategy excels.
+- Describe market conditions where the 90-day strategy excels.
+- Specify risk tolerance scenarios.
+
+IMPROVEMENT SUGGESTION:
+- Propose ONE actionable enhancement to the underperforming strategy.
+- Explain how it would improve the metrics.
+- Be concrete and implementable.
+
+STYLE CONSTRAINTS:
+- Use percentages when referring to metrics.
+- Ground every claim directly in the provided JSON data.
+- Maintain professional fintech analyst tone.
+- Allow depth but avoid unnecessary length.
+- Quantify all comparisons with actual numbers, not vague language."""
+    
+    else:
+        raise ValueError(f"Mode must be 'quick' or 'detailed', got '{mode}'")
+    
     return prompt
 import os
 import json
@@ -121,10 +190,15 @@ Begin your analysis with Section 1 and work through all 5 sections:"""
 def run_ai_analysis(
     strategy_30: Dict[str, float],
     strategy_90: Dict[str, float],
+    mode: str = "quick",
     model_name: str = "gemini-2.5-flash",
     temperature: float = 0.3
 ) -> str:
     """Runs Gemini API analysis for two strategies and returns the result."""
+    
+    # Validate mode parameter
+    if mode not in ["quick", "detailed"]:
+        raise ValueError(f"Mode must be 'quick' or 'detailed', got '{mode}'")
     
     # STEP 1: Initialize API client (credentials from environment)
     try:
@@ -135,8 +209,8 @@ def run_ai_analysis(
     # STEP 2: Build structured JSON payload
     comparison_payload = _build_comparison_payload(strategy_30, strategy_90)
     
-    # STEP 3: Create improved structured prompt
-    analysis_prompt = build_structured_prompt(comparison_payload)
+    # STEP 3: Create mode-based prompt
+    analysis_prompt = build_prompt(comparison_payload, mode)
     
     # STEP 4: Call Gemini API with structured input
     try:

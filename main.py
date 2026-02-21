@@ -177,17 +177,39 @@ def main():
         print(f"  Strategy 30-day Sharpe Ratio: {strategy_30_metrics['sharpe_ratio']:.4f}")
         print(f"  Strategy 90-day Sharpe Ratio: {strategy_90_metrics['sharpe_ratio']:.4f}")
 
-        # Run AI analysis
+        # Interactive mode selection for AI analysis
+        print("\n" + "="*70)
+        print("AI ANALYSIS MODE SELECTION")
+        print("="*70)
+        print("\n1. Quick Mode   - 5 concise insights (WINNER, KEY DIFFERENCE, RISK NOTE, IDEA)")
+        print("2. Detailed Mode - Full analytical breakdown with comprehensive sections")
+        print("\n" + "-"*70)
+        
+        mode_choice = None
+        while mode_choice not in ["1", "2"]:
+            user_input = input("\nSelect mode (1 or 2): ").strip()
+            if user_input == "1":
+                mode_choice = "1"
+                selected_mode = "quick"
+                print("✓ Quick mode selected")
+            elif user_input == "2":
+                mode_choice = "2"
+                selected_mode = "detailed"
+                print("✓ Detailed mode selected")
+            else:
+                print("  Invalid input. Please enter 1 or 2.")
+        
+        # Run AI analysis with selected mode
         print("\n[INFO] Calling Gemini API for strategy analysis...\n")
-        analysis_text = run_ai_analysis(strategy_30_metrics, strategy_90_metrics)
+        analysis_text = run_ai_analysis(strategy_30_metrics, strategy_90_metrics, mode=selected_mode)
         
         # Format and display analysis with pretty printing
         formatted_analysis = format_analysis_output(analysis_text)
         print(formatted_analysis)
         
-        # Save entire AI-generated analysis to file
+        # Save formatted AI-generated analysis to file
         with open('ai_suggestion.txt', 'w', encoding='utf-8') as f:
-            f.write(analysis_text + '\n')
+            f.write(formatted_analysis + '\n')
 
     except Exception as e:
         print(f"\n[ERROR] AI analysis failed: {e}")
