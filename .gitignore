@@ -1,2 +1,4 @@
 .history/
 nbenv/
+.env
+__pycache__/

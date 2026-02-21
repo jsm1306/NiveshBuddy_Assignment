@@ -1,0 +1,17 @@
+WINNER:
+- The momentum strategy with a 90-day lookback period performs better overall.
+
+KEY DIFFERENCES:
+- Strategy 90-day's total return of -17.94% is significantly better than Strategy 30-day's -48.72%.
+- Strategy 90-day experienced a maximum drawdown of -25.86%, which is substantially less severe than Strategy 30-day's -55.94%.
+- Strategy 90-day exhibits a Sharpe Ratio of -0.20, indicating a better risk-adjusted return compared to Strategy 30-day's -0.91.
+
+RISK VS RETURN:
+- Strategy 30-day exhibited higher volatility (22.27%) and a significantly larger maximum drawdown (-55.94%), resulting in a substantially worse risk-adjusted return as indicated by its Sharpe ratio of -0.91. In contrast, Strategy 90-day achieved a better Sharpe ratio of -0.20 with slightly lower volatility (21.77%) and a much more contained maximum drawdown (-25.86%), demonstrating a more favorable risk-return trade-off despite both strategies showing negative performance.
+
+WHEN EACH STRATEGY MAY OUTPERFORM:
+- Strategy 30-day (shorter lookback) might perform better in highly dynamic, rapidly changing market conditions where trends are short-lived but strong.
+- Strategy 90-day (longer lookback) is likely more suited for markets with more sustained trends, where short-term noise is filtered out, leading to more robust momentum signals.
+
+IMPROVEMENT SUGGESTION:
+- Implement a volatility filter to reduce exposure during periods of extremely high market volatility, which often correlates with larger drawdowns.
