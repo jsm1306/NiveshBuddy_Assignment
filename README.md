@@ -22,7 +22,7 @@ A quantitative portfolio analysis system that implements dual momentum strategie
     # Activate virtual environment
     
     # On Windows:
-    nbenvScriptsactivate
+    ./nbenv/Scripts/activate
     
     # On macOS/Linux:
     source nbenv/bin/activate
