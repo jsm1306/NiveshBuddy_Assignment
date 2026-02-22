@@ -16,13 +16,24 @@ A quantitative portfolio analysis system that implements dual momentum strategie
 1.  **Create and Activate Virtual Environment**
     
     ```bash
-    # Create virtual environmentpython -m venv nbenv# Activate virtual environment# On Windows:nbenvScriptsactivate# On macOS/Linux:source nbenv/bin/activate
+    # Create virtual environment
+    
+    python -m venv nbenv
+    # Activate virtual environment
+    
+    # On Windows:
+    nbenvScriptsactivate
+    
+    # On macOS/Linux:
+    source nbenv/bin/activate
     ```
     
 2.  **Install Dependencies**
     
     ```bash
+    
     pip install -r requirements.txt
+    
     ```
     
     This installs all required packages listed in `requirements.txt`.
@@ -38,7 +49,14 @@ A quantitative portfolio analysis system that implements dual momentum strategie
     -   Or set it in your system environment variables:
     
     ```bash
-    # Windows PowerShell:$env:GEMINI_API_KEY="your_api_key_here"# Windows CMD:set GEMINI_API_KEY=your_api_key_here# macOS/Linux:export GEMINI_API_KEY="your_api_key_here"
+    # Windows PowerShell:
+    $env:GEMINI_API_KEY="your_api_key_here"
+    
+    # Windows CMD:
+    set GEMINI_API_KEY=your_api_key_here
+    
+    # macOS/Linux:
+    export GEMINI_API_KEY="your_api_key_here"
     ```
     
 4.  **Prepare Data**
@@ -48,7 +66,9 @@ A quantitative portfolio analysis system that implements dual momentum strategie
     -   Example:
     
     ```
-    Date,AAPL,MSFT,GOOGL2023-01-01,150.00,200.00,100.002023-01-02,151.00,201.00,101.00...
+    Date,AAPL,MSFT,GOOGL
+    2023-01-01,150.00,200.00,100.00
+    2023-01-02,151.00,201.00,101.00...
     ```
     
 5.  **Run the Application**
@@ -63,7 +83,19 @@ A quantitative portfolio analysis system that implements dual momentum strategie
 ## Project Structure
 
 ```
-./├── main.py                 # Workflow orchestrator (3 STEPS)├── data_loader.py          # Data loading & cleaning├── strategy_engine.py      # Momentum strategy implementation├── metrics.py              # Performance metrics├── ai_analysis.py          # Gemini AI integration├── test_analysis.ipynb     # Jupyter notebook testing├── data/│   ├── assets.csv          # Raw data│   └── assets_clean.csv    # Cleaned data (auto-generated)├── .env                    # Environment variables└── README.md               # This file
+./
+├── main.py                 # Main workflow orchestrator
+├── data_loader.py          # Data loading and cleaning
+├── strategy_engine.py      # Momentum strategy implementation
+├── metrics.py              # Performance metrics computation
+├── ai_analysis.py          # Gemini AI integration & prompts
+├── test_analysis.ipynb     # Jupyter notebook for testing
+├── data/
+│   ├── assets.csv          # Raw asset price data
+│   └── assets_clean.csv    # Cleaned data (auto-generated)
+├── ai_suggestion.txt       # AI-generated analysis output
+├── .env                    # Environment variables (not in repo)
+└── README.md               # This file
 ```
 
 ## Assumptions Made
@@ -81,35 +113,19 @@ A quantitative portfolio analysis system that implements dual momentum strategie
 -   **Rebalancing**: Monthly on the last trading day of each calendar month
 -   **Asset Selection**: Top 2 performing assets identified by momentum score
 -   **Position Sizing**: Equal weight (50/50) allocation to selected assets
--   **Risk-Free Rate**: 0.0% (for Sharpe and Sortino ratio calculations)
 
 ## Design Principles
 
 ### 1. Modular Architecture
 
-Module
+The codebase is organized into **separate, single-responsibility modules**:
+- `data_loader.py` → Data I/O only
+- `strategy_engine.py` → Strategy computation only
+- `metrics.py` → Metric calculations only
+- `ai_analysis.py` → AI layer isolation
+- `main.py` → High-level orchestration
 
-Responsibility
-
-`data_loader.py`
-
-Load, clean, save CSV
-
-`strategy_engine.py`
-
-Implement momentum logic
-
-`metrics.py`
-
-Calculate performance metrics
-
-`ai_analysis.py`
-
-JSON building, prompt engineering, API calls
-
-`main.py`
-
-Orchestrate 3-step workflow
+**Rationale**: Easy testing, modification, and debugging without touching other components.
 
 ### 2. Momentum Strategy Implementation
 
@@ -124,9 +140,21 @@ Orchestrate 3-step workflow
 
 ### JSON Data Embedding
 
+Metrics are dynamically inserted as JSON:
 ```json
-{  "strategy_30_day": {    "lookback_period_days": 30,    "metrics": {      "total_return": 0.2543,      "cagr": 0.082,      "volatility": 0.12,      "max_drawdown": -0.15,      "sharpe_ratio": 0.67,      "sortino_ratio": 0.95    }  },  "strategy_90_day": {    "lookback_period_days": 90,    "metrics": {...}  },  "metadata": {    "strategy_type": "momentum_rebalancing",    "rebalance_frequency": "monthly",    "asset_selection": "top_2_equal_weight"  }}
+{
+  "strategy_30_day": {
+    "lookback_period_days": 30,
+    "metrics": {...}
+  },
+  "strategy_90_day": {
+    "lookback_period_days": 90,
+    "metrics": {...}
+  },
+  "metadata": {...}
+}
 ```
+**Why?** Model sees *actual numbers*, not placeholders. Prevents hallucination.
 
 ### Structured Analysis Requirements
 
@@ -141,7 +169,11 @@ The prompt enforces **5 required analysis points**:
 ### API Configuration
 
 ```python
-model = genai.GenerativeModel("gemini-2.5-flash")generation_config = {    "temperature": 0.3,           # Low randomness (analytical focus)    "max_output_tokens": 3500     # Ensure all 5 sections fit}
+model = genai.GenerativeModel("gemini-2.5-flash")
+generation_config = {
+"temperature": 0.3,            # Low randomness (analytical focus)
+"max_output_tokens": 3500     # Ensure all 5 sections fit
+}
 ```
 
 **Why these settings?**
@@ -152,10 +184,22 @@ model = genai.GenerativeModel("gemini-2.5-flash")generation_config = {    "tempe
 
 ---
 
-## Complete Workflow
+## Runtime flow
 
 ```
-python main.py    ↓STEP 1: Data Loading & Cleaning├─ Load raw CSV├─ Parse dates, sort, handle missing values├─ Save cleaned CSV└─ Print diagnostics    ↓STEP 2: Strategy Execution├─ Strategy A (30 trading days):│  ├─ Compute momentum scores│  ├─ Monthly rebalance (top 2 assets)│  ├─ Calculate daily returns│  └─ Compute 6 metrics├─ Strategy B (90 trading days):│  ├─ Compute momentum scores│  ├─ Monthly rebalance (top 2 assets)│  ├─ Calculate daily returns│  └─ Compute 6 metrics└─ Print summaries    ↓STEP 3: AI Analysis via Gemini API├─ Build JSON payload with metrics├─ Create structured prompt (5 required points)├─ Call Gemini 2.5 Flash│  ├─ Temperature: 0.3│  ├─ Max Tokens: 3500│  └─ Response: All 5 analytical sections├─ Format output (markdown → readable)└─ Display to console    ↓Workflow Complete ✓
+User Selects Mode
+    ↓
+run_ai_analysis() called with mode parameter
+    ↓
+build_prompt() constructs instruction + JSON embedding
+    ↓
+Gemini API receives complete prompt
+    ↓
+Model generates analysis (mode-specific structure)
+    ↓
+format_analysis_output() converts markdown → plain text
+    ↓
+Formatted text saved to ai_suggestion.txt
 ```
 
 ---
