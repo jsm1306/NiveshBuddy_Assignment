@@ -14,27 +14,22 @@ def compute_metrics(
     if portfolio_returns.empty or portfolio_value.empty:
         raise ValueError("portfolio_returns and portfolio_value cannot be empty")
 
-    # Create working copies to avoid modifying inputs
+
     returns = portfolio_returns.copy()
     values = portfolio_value.copy()
-
-    # Drop initial NaN values from returns (expected for first-period return calculation)
     returns = returns.dropna()
-
     if returns.empty or values.empty:
         raise ValueError("After dropping NaN values, series are empty")
 
-    # =========================================================================
+
     # 1. TOTAL RETURN
-    # =========================================================================
     # Total return = (Final Value / Initial Value) - 1
     # Since initial value is 1.0, this simplifies to: Final Value - 1
     final_value = values.iloc[-1]
     total_return = final_value - 1.0
 
-    # =========================================================================
+
     # 2. CAGR (Compound Annual Growth Rate)
-    # =========================================================================
     # CAGR = (Final Value) ^ (1 / years) - 1
     # where years = number_of_trading_days / trading_days_per_year
     number_of_trading_days = len(returns)
@@ -48,27 +43,22 @@ def compute_metrics(
     else:
         cagr = (final_value ** (1.0 / years)) - 1.0
 
-    # =========================================================================
+
     # 3. VOLATILITY (Annualized)
-    # =========================================================================
     # Volatility = Daily Std Dev * sqrt(trading_days_per_year)
     # This annualizes the daily volatility using the square-root-of-time rule,
     # which assumes returns have zero autocorrelation (reasonable for equities).
     daily_volatility = returns.std()
     volatility = daily_volatility * np.sqrt(trading_days_per_year)
 
-    # =========================================================================
     # 4. MAXIMUM DRAWDOWN
-    # =========================================================================
     # Maximum Drawdown = min(Current Value / Running Peak - 1)
     # This represents the largest peak-to-trough decline.
     running_max = values.cummax()
     drawdown = (values / running_max) - 1.0
     max_drawdown = drawdown.min()
 
-    # =========================================================================
     # RETURN METRICS DICTIONARY
-    # =========================================================================
     metrics = {
         'total_return': float(total_return),
         'cagr': float(cagr),
@@ -131,18 +121,15 @@ def compute_sortino_ratio(
         return np.nan
 
     annual_return = returns.mean() * trading_days_per_year
-
     downside_returns = returns[returns < target_return]
-
     if downside_returns.empty:
         return np.inf if annual_return > target_return else 0.0
 
-    downside_deviation = downside_returns.std() * np.sqrt(trading_days_per_year)
 
+    downside_deviation = downside_returns.std() * np.sqrt(trading_days_per_year)
     # Avoid division by zero
     if downside_deviation == 0:
         return np.inf if annual_return > target_return else 0.0
 
     sortino = (annual_return - target_return) / downside_deviation
-
     return float(sortino)

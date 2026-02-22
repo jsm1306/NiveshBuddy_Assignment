@@ -13,7 +13,6 @@ def compute_strategy(df: pd.DataFrame, lookback_days: int) -> Dict[str, pd.Serie
     date_col = df.columns[0]
     asset_cols = df.columns[1:].tolist()
 
-    # Create a working copy with proper datetime type
     data = df.copy()
     data[date_col] = pd.to_datetime(data[date_col])
 
@@ -38,7 +37,6 @@ def compute_strategy(df: pd.DataFrame, lookback_days: int) -> Dict[str, pd.Serie
 
     # Assign weights at each rebalance date, holding until next rebalance
     for i, rebal_pos in enumerate(rebalance_indices):
-        # Get momentum scores at this rebalance date
         momentum_row = momentum_scores.iloc[rebal_pos]
 
         # Only assign weights if we have valid momentum data for at least 2 assets
